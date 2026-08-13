@@ -7,14 +7,13 @@ public class Block {
     // =========================================================
 
     /*
-     * Overall size multiplier.
+     * Overall size multiplier reference.
      *
-     * This value is kept here as a reference for GameView.
+     * GameView controls the actual block dimensions.
      *
-     * 1.0  = original size
-     * 1.15 = 15% larger
+     * 1.0f  = original size
+     * 1.15f = 15% larger
      */
-
     public static final float SIZE_MULTIPLIER = 1.15f;
 
     // =========================================================
@@ -35,6 +34,18 @@ public class Block {
     // IMAGE SOURCE RANGE
     // =========================================================
 
+    /*
+     * These values determine which horizontal part of the
+     * tower image is displayed.
+     *
+     * 0.0f = far left of image
+     * 1.0f = far right of image
+     *
+     * Example:
+     *
+     * 0.0 -> 1.0 = complete tower image
+     * 0.2 -> 0.8 = middle portion only
+     */
     private float sourceLeft;
     private float sourceRight;
 
@@ -43,11 +54,15 @@ public class Block {
     // =========================================================
 
     /*
+     * Determines which tower image this block uses.
+     *
      * 0 = tower_core.png
      * 1 = tower_core1.png
      * 2 = tower_core2.png
+     * 3 = tower_core3.png
+     * 4 = tower_core4.png
+     * 5 = tower_core5.png
      */
-
     private int towerType;
 
     // =========================================================
@@ -65,23 +80,34 @@ public class Block {
         this.y = y;
 
         /*
-         * IMPORTANT:
+         * GameView determines the actual size.
          *
-         * Do NOT multiply the dimensions here.
-         *
-         * GameView will control the final size so that
-         * moving blocks and placed blocks stay exactly
-         * the same size.
+         * Do not apply SIZE_MULTIPLIER here because that
+         * would cause moving and placed blocks to have
+         * inconsistent sizes.
          */
-
         this.width = width;
         this.height = height;
 
-        // Display the complete image initially.
+        // -----------------------------------------------------
+        // IMAGE
+        // -----------------------------------------------------
+
+        /*
+         * A newly created block displays its complete image.
+         */
         this.sourceLeft = 0f;
         this.sourceRight = 1f;
 
-        // Default tower type.
+        // -----------------------------------------------------
+        // TOWER TYPE
+        // -----------------------------------------------------
+
+        /*
+         * Default to tower_core.png.
+         *
+         * GameView changes this using setTowerType().
+         */
         this.towerType = 0;
     }
 
@@ -129,18 +155,30 @@ public class Block {
     // EDGES
     // =========================================================
 
+    /*
+     * Left edge of the block.
+     */
     public float getLeft() {
         return x;
     }
 
+    /*
+     * Right edge of the block.
+     */
     public float getRight() {
         return x + width;
     }
 
+    /*
+     * Top edge of the block.
+     */
     public float getTop() {
         return y;
     }
 
+    /*
+     * Bottom edge of the block.
+     */
     public float getBottom() {
         return y + height;
     }
@@ -157,39 +195,103 @@ public class Block {
         return sourceRight;
     }
 
+    /*
+     * Sets the portion of the tower image that should be
+     * displayed.
+     *
+     * Values are automatically restricted to 0.0 - 1.0.
+     */
     public void setSourceRange(
             float sourceLeft,
             float sourceRight
     ) {
 
-        this.sourceLeft = sourceLeft;
-        this.sourceRight = sourceRight;
+        // -----------------------------------------------------
+        // CLAMP LEFT
+        // -----------------------------------------------------
+
+        sourceLeft =
+                Math.max(
+                        0f,
+                        Math.min(
+                                1f,
+                                sourceLeft
+                        )
+                );
+
+        // -----------------------------------------------------
+        // CLAMP RIGHT
+        // -----------------------------------------------------
+
+        sourceRight =
+                Math.max(
+                        0f,
+                        Math.min(
+                                1f,
+                                sourceRight
+                        )
+                );
+
+        // -----------------------------------------------------
+        // PREVENT REVERSED RANGE
+        // -----------------------------------------------------
+
+        if (sourceRight < sourceLeft) {
+
+            float temp =
+                    sourceLeft;
+
+            sourceLeft =
+                    sourceRight;
+
+            sourceRight =
+                    temp;
+        }
+
+        this.sourceLeft =
+                sourceLeft;
+
+        this.sourceRight =
+                sourceRight;
     }
 
     // =========================================================
     // TOWER TYPE
     // =========================================================
 
+    /*
+     * Returns the tower design used by this block.
+     */
     public int getTowerType() {
         return towerType;
     }
 
+    /*
+     * Sets the tower design used by this block.
+     *
+     * Valid tower types:
+     *
+     * 0 = tower_core.png
+     * 1 = tower_core1.png
+     * 2 = tower_core2.png
+     * 3 = tower_core3.png
+     * 4 = tower_core4.png
+     * 5 = tower_core5.png
+     */
     public void setTowerType(int towerType) {
 
         /*
          * Prevent invalid tower types.
          *
-         * 0 = tower_core.png
-         * 1 = tower_core1.png
-         * 2 = tower_core2.png
+         * Anything below 0 becomes 0.
+         * Anything above 5 becomes 5.
          */
-
         if (towerType < 0) {
             towerType = 0;
         }
 
-        if (towerType > 2) {
-            towerType = 2;
+        if (towerType > 5) {
+            towerType = 5;
         }
 
         this.towerType = towerType;
